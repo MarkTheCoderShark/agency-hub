@@ -16,8 +16,12 @@ import type {
   RequestPriority,
   RequestStatus,
   ProjectStatus,
-  ProjectMemberRole,
 } from './database.types'
+
+// Staff member is an agency member who has joined
+export interface StaffMember extends AgencyMember {
+  user: User
+}
 
 // Extended types with relations
 export interface UserWithAgency extends User {

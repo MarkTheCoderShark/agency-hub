@@ -1,5 +1,5 @@
-// Database types - will be generated from Supabase CLI
-// For now, defining manually based on our schema
+// Database types - following Supabase generated types format
+// Includes Relationships arrays required for proper type inference in Supabase v2+
 
 export type Json =
   | string
@@ -58,6 +58,7 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: []
       }
       agencies: {
         Row: {
@@ -96,6 +97,15 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "agencies_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       agency_subscriptions: {
         Row: {
@@ -161,6 +171,15 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "agency_subscriptions_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: true
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       tier_limits: {
         Row: {
@@ -193,6 +212,7 @@ export interface Database {
           annual_price_cents?: number | null
           features?: Json
         }
+        Relationships: []
       }
       agency_members: {
         Row: {
@@ -234,6 +254,29 @@ export interface Database {
           joined_at?: string | null
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "agency_members_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agency_members_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       projects: {
         Row: {
@@ -287,6 +330,29 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "projects_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "projects_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       project_members: {
         Row: {
@@ -331,6 +397,29 @@ export interface Database {
           email_notifications?: boolean
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "project_members_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_members_invited_by_fkey"
+            columns: ["invited_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       project_notes: {
         Row: {
@@ -366,6 +455,22 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "project_notes_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_notes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       requests: {
         Row: {
@@ -416,6 +521,36 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "requests_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requests_completed_by_fkey"
+            columns: ["completed_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       request_assignments: {
         Row: {
@@ -439,6 +574,29 @@ export interface Database {
           assigned_by?: string
           assigned_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "request_assignments_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_assignments_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       request_messages: {
         Row: {
@@ -471,6 +629,22 @@ export interface Database {
           updated_at?: string
           deleted_at?: string | null
         }
+        Relationships: [
+          {
+            foreignKeyName: "request_messages_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_messages_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       attachments: {
         Row: {
@@ -512,6 +686,36 @@ export interface Database {
           uploaded_by?: string
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "attachments_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attachments_message_id_fkey"
+            columns: ["message_id"]
+            isOneToOne: false
+            referencedRelation: "request_messages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attachments_note_id_fkey"
+            columns: ["note_id"]
+            isOneToOne: false
+            referencedRelation: "project_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       notifications: {
         Row: {
@@ -550,6 +754,15 @@ export interface Database {
           read_at?: string | null
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       notification_preferences: {
         Row: {
@@ -585,6 +798,15 @@ export interface Database {
           created_at?: string
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       conversation_mutes: {
         Row: {
@@ -605,6 +827,22 @@ export interface Database {
           request_id?: string
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_mutes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "conversation_mutes_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       request_activity_log: {
         Row: {
@@ -637,6 +875,22 @@ export interface Database {
           metadata?: Json
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "request_activity_log_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_activity_log_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
       user_devices: {
         Row: {
@@ -666,32 +920,44 @@ export interface Database {
           last_used_at?: string
           created_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "user_devices_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
       }
     }
     Views: {
       active_clients_count: {
         Row: {
-          agency_id: string
-          active_client_count: number
+          agency_id: string | null
+          active_client_count: number | null
         }
+        Relationships: []
       }
       agency_storage_usage: {
         Row: {
-          agency_id: string
-          total_bytes: number
-          total_gb: number
+          agency_id: string | null
+          total_bytes: number | null
+          total_gb: number | null
         }
+        Relationships: []
       }
       agency_stats: {
         Row: {
-          agency_id: string
-          active_projects: number
-          total_projects: number
-          submitted_requests: number
-          in_progress_requests: number
-          complete_requests: number
-          staff_count: number
+          agency_id: string | null
+          active_projects: number | null
+          total_projects: number | null
+          submitted_requests: number | null
+          in_progress_requests: number | null
+          complete_requests: number | null
+          staff_count: number | null
         }
+        Relationships: []
       }
     }
     Functions: {
@@ -707,6 +973,19 @@ export interface Database {
         Args: { p_agency_id: string; p_limit_type: string }
         Returns: { current_count: number; limit_value: number; within_limit: boolean }[]
       }
+    }
+    Enums: {
+      user_role: UserRole
+      project_member_role: ProjectMemberRole
+      project_status: ProjectStatus
+      request_type: RequestType
+      request_priority: RequestPriority
+      request_status: RequestStatus
+      subscription_status: SubscriptionStatus
+      subscription_tier: SubscriptionTier
+    }
+    CompositeTypes: {
+      [_ in never]: never
     }
   }
 }
@@ -735,3 +1014,8 @@ export type NotificationPreference = Tables<'notification_preferences'>
 export type ConversationMute = Tables<'conversation_mutes'>
 export type RequestActivityLog = Tables<'request_activity_log'>
 export type UserDevice = Tables<'user_devices'>
+
+// View types (explicit for better type inference)
+export type ActiveClientsCountView = Views<'active_clients_count'>
+export type AgencyStorageUsageView = Views<'agency_storage_usage'>
+export type AgencyStatsView = Views<'agency_stats'>

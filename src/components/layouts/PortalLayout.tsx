@@ -38,9 +38,10 @@ export function PortalLayout() {
   const { data: agency, isLoading: agencyLoading } = useQuery({
     queryKey: ['portal-agency', slug],
     queryFn: async () => {
+      if (!slug) throw new Error('Slug is required')
       const { data, error } = await supabase
         .from('agencies')
-        .select('*')
+        .select('*, subscription:agency_subscriptions(*)')
         .eq('slug', slug)
         .single()
 

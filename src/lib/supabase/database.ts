@@ -1,5 +1,24 @@
 import { supabase } from './client'
-import type { Database } from '@/types/database.types'
+import type {
+  Database,
+  AgencyStatsView,
+  AgencyStorageUsageView,
+  ActiveClientsCountView,
+  Agency,
+  AgencySubscription,
+  AgencyMember,
+  User,
+  Project,
+  ProjectMember,
+  ProjectNote,
+  Request,
+  RequestAssignment,
+  RequestMessage,
+  Attachment,
+  Notification,
+  NotificationPreference,
+  RequestActivityLog,
+} from '@/types/database.types'
 import type {
   CreateProjectRequest,
   UpdateProjectRequest,
@@ -8,15 +27,32 @@ import type {
   CreateMessageRequest,
   RequestFilters,
   RequestSort,
+  AgencyMemberWithUser,
+  ProjectWithMembers,
+  ProjectMemberWithUser,
+  RequestWithDetails,
+  RequestMessageWithUser,
+  ProjectNoteWithUser,
 } from '@/types/api.types'
 
 type Tables = Database['public']['Tables']
+
+// Query result types for complex joins
+export type AgencyWithDetails = Agency & {
+  subscription: AgencySubscription | null
+  members: AgencyMemberWithUser[]
+}
+
+export type ProjectWithDetails = Project & {
+  project_members: ProjectMemberWithUser[]
+  agency?: Agency
+}
 
 // ============================================================================
 // AGENCIES
 // ============================================================================
 
-export async function getAgency(agencyId: string) {
+export async function getAgency(agencyId: string): Promise<AgencyWithDetails> {
   const { data, error } = await supabase
     .from('agencies')
     .select(`
@@ -31,7 +67,7 @@ export async function getAgency(agencyId: string) {
     .single()
 
   if (error) throw error
-  return data
+  return data as unknown as AgencyWithDetails
 }
 
 export async function updateAgency(
@@ -46,44 +82,56 @@ export async function updateAgency(
   if (error) throw error
 }
 
-export async function getAgencyStats(agencyId: string) {
+export async function getAgencyStats(agencyId: string): Promise<AgencyStatsView | null> {
   const { data, error } = await supabase
     .from('agency_stats')
     .select('*')
     .eq('agency_id', agencyId)
     .single()
 
-  if (error) throw error
-  return data
+  if (error) {
+    // View might not have data for this agency yet
+    if (error.code === 'PGRST116') return null
+    throw error
+  }
+  return data as AgencyStatsView
 }
 
-export async function getAgencyStorageUsage(agencyId: string) {
+export async function getAgencyStorageUsage(agencyId: string): Promise<AgencyStorageUsageView | null> {
   const { data, error } = await supabase
     .from('agency_storage_usage')
     .select('*')
     .eq('agency_id', agencyId)
     .single()
 
-  if (error) throw error
-  return data
+  if (error) {
+    // View might not have data for this agency yet
+    if (error.code === 'PGRST116') return null
+    throw error
+  }
+  return data as AgencyStorageUsageView
 }
 
-export async function getActiveClientsCount(agencyId: string) {
+export async function getActiveClientsCount(agencyId: string): Promise<ActiveClientsCountView | null> {
   const { data, error } = await supabase
     .from('active_clients_count')
     .select('*')
     .eq('agency_id', agencyId)
     .single()
 
-  if (error) throw error
-  return data
+  if (error) {
+    // View might not have data for this agency yet
+    if (error.code === 'PGRST116') return null
+    throw error
+  }
+  return data as ActiveClientsCountView
 }
 
 // ============================================================================
 // TEAM
 // ============================================================================
 
-export async function getAgencyMembers(agencyId: string) {
+export async function getAgencyMembers(agencyId: string): Promise<AgencyMemberWithUser[]> {
   const { data, error } = await supabase
     .from('agency_members')
     .select(`
@@ -94,7 +142,7 @@ export async function getAgencyMembers(agencyId: string) {
     .order('created_at', { ascending: true })
 
   if (error) throw error
-  return data
+  return data as unknown as AgencyMemberWithUser[]
 }
 
 export async function inviteStaffMember(agencyId: string, email: string, invitedBy: string) {
@@ -146,7 +194,7 @@ export async function resendStaffInvitation(memberId: string) {
 // PROJECTS
 // ============================================================================
 
-export async function getProjects(agencyId: string, includeArchived = false) {
+export async function getProjects(agencyId: string, includeArchived = false): Promise<ProjectWithDetails[]> {
   let query = supabase
     .from('projects')
     .select(`
@@ -167,10 +215,10 @@ export async function getProjects(agencyId: string, includeArchived = false) {
   const { data, error } = await query
 
   if (error) throw error
-  return data
+  return data as unknown as ProjectWithDetails[]
 }
 
-export async function getProject(projectId: string) {
+export async function getProject(projectId: string): Promise<ProjectWithDetails> {
   const { data, error } = await supabase
     .from('projects')
     .select(`
@@ -186,7 +234,7 @@ export async function getProject(projectId: string) {
     .single()
 
   if (error) throw error
-  return data
+  return data as unknown as ProjectWithDetails
 }
 
 export async function createProject(agencyId: string, userId: string, data: CreateProjectRequest) {
@@ -235,7 +283,7 @@ export async function deleteProject(projectId: string) {
 // PROJECT MEMBERS
 // ============================================================================
 
-export async function getProjectMembers(projectId: string) {
+export async function getProjectMembers(projectId: string): Promise<ProjectMemberWithUser[]> {
   const { data, error } = await supabase
     .from('project_members')
     .select(`
@@ -246,7 +294,7 @@ export async function getProjectMembers(projectId: string) {
     .order('created_at', { ascending: true })
 
   if (error) throw error
-  return data
+  return data as unknown as ProjectMemberWithUser[]
 }
 
 export async function addProjectMember(
@@ -323,7 +371,7 @@ export async function getRequests(
   projectId: string,
   filters?: RequestFilters,
   sort?: RequestSort
-) {
+): Promise<RequestWithDetails[]> {
   let query = supabase
     .from('requests')
     .select(`
@@ -361,20 +409,22 @@ export async function getRequests(
 
   if (error) throw error
 
+  const typedData = data as unknown as RequestWithDetails[]
+
   // Filter by assignment if needed
   if (filters?.assigned && filters.assigned !== 'all') {
     if (filters.assigned === 'unassigned') {
-      return data.filter((r) => r.assignments.length === 0)
+      return typedData.filter((r) => r.assignments.length === 0)
     }
-    return data.filter((r) =>
+    return typedData.filter((r) =>
       r.assignments.some((a) => a.user_id === filters.assigned)
     )
   }
 
-  return data
+  return typedData
 }
 
-export async function getRequest(requestId: string) {
+export async function getRequest(requestId: string): Promise<RequestWithDetails> {
   const { data, error } = await supabase
     .from('requests')
     .select(`
@@ -392,7 +442,7 @@ export async function getRequest(requestId: string) {
     .single()
 
   if (error) throw error
-  return data
+  return data as unknown as RequestWithDetails
 }
 
 export async function createRequest(
@@ -482,7 +532,7 @@ export async function unassignRequest(requestId: string, userId: string) {
 // MESSAGES
 // ============================================================================
 
-export async function getMessages(requestId: string, isAgencyUser: boolean) {
+export async function getMessages(requestId: string, isAgencyUser: boolean): Promise<RequestMessageWithUser[]> {
   let query = supabase
     .from('request_messages')
     .select(`
@@ -502,7 +552,7 @@ export async function getMessages(requestId: string, isAgencyUser: boolean) {
   const { data, error } = await query
 
   if (error) throw error
-  return data
+  return data as unknown as RequestMessageWithUser[]
 }
 
 export async function createMessage(
@@ -550,7 +600,7 @@ export async function deleteMessage(messageId: string) {
 // PROJECT NOTES
 // ============================================================================
 
-export async function getProjectNotes(projectId: string) {
+export async function getProjectNotes(projectId: string): Promise<ProjectNoteWithUser[]> {
   const { data, error } = await supabase
     .from('project_notes')
     .select(`
@@ -564,7 +614,7 @@ export async function getProjectNotes(projectId: string) {
     .order('updated_at', { ascending: false })
 
   if (error) throw error
-  return data
+  return data as unknown as ProjectNoteWithUser[]
 }
 
 export async function createProjectNote(
@@ -614,7 +664,7 @@ export async function deleteProjectNote(noteId: string) {
 // NOTIFICATIONS
 // ============================================================================
 
-export async function getNotifications(userId: string, unreadOnly = false) {
+export async function getNotifications(userId: string, unreadOnly = false): Promise<Notification[]> {
   let query = supabase
     .from('notifications')
     .select('*')
@@ -629,7 +679,7 @@ export async function getNotifications(userId: string, unreadOnly = false) {
   const { data, error } = await query
 
   if (error) throw error
-  return data
+  return data as unknown as Notification[]
 }
 
 export async function markNotificationRead(notificationId: string) {
@@ -651,15 +701,19 @@ export async function markAllNotificationsRead(userId: string) {
   if (error) throw error
 }
 
-export async function getNotificationPreferences(userId: string) {
+export async function getNotificationPreferences(userId: string): Promise<NotificationPreference | null> {
   const { data, error } = await supabase
     .from('notification_preferences')
     .select('*')
     .eq('user_id', userId)
     .single()
 
-  if (error) throw error
-  return data
+  if (error) {
+    // Preferences might not exist yet
+    if (error.code === 'PGRST116') return null
+    throw error
+  }
+  return data as unknown as NotificationPreference
 }
 
 export async function updateNotificationPreferences(

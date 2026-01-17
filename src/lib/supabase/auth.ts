@@ -38,7 +38,7 @@ export async function signUp({ email, password, name, agencyName }: SignUpData) 
     email,
     name,
     email_verified: false,
-  })
+  } as any)
 
   if (userError) throw userError
 

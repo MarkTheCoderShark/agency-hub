@@ -1,13 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
-import type { User, StaffMember } from '@/types'
+import type { User, AgencyMember } from '@/types'
 
 interface AuthState {
   user: User | null
-  staffMember: StaffMember | null
+  agencyMember: AgencyMember | null
   isInitialized: boolean
   setUser: (user: User | null) => void
-  setStaffMember: (staff: StaffMember | null) => void
+  setAgencyMember: (member: AgencyMember | null) => void
   setInitialized: (initialized: boolean) => void
   clear: () => void
 }
@@ -16,12 +16,12 @@ export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       user: null,
-      staffMember: null,
+      agencyMember: null,
       isInitialized: false,
       setUser: (user) => set({ user }),
-      setStaffMember: (staffMember) => set({ staffMember }),
+      setAgencyMember: (agencyMember) => set({ agencyMember }),
       setInitialized: (isInitialized) => set({ isInitialized }),
-      clear: () => set({ user: null, staffMember: null, isInitialized: false }),
+      clear: () => set({ user: null, agencyMember: null, isInitialized: false }),
     }),
     {
       name: 'auth-storage',

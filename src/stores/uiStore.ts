@@ -59,8 +59,8 @@ export const useUIStore = create<UIState>()(
       // Modals
       activeModal: null,
       modalData: null,
-      openModal: (modalId, data = null) =>
-        set({ activeModal: modalId, modalData: data }),
+      openModal: (modalId, data) =>
+        set({ activeModal: modalId, modalData: data ?? null }),
       closeModal: () => set({ activeModal: null, modalData: null }),
 
       // Request slide-over

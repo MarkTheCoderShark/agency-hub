@@ -178,7 +178,7 @@ export function DashboardPage() {
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground">Used</span>
                   <span className="text-sm font-medium">
-                    {storage ? formatBytes(storage.total_bytes) : '0 B'}
+                    {storage ? formatBytes(storage.total_bytes ?? 0) : '0 B'}
                     {storageLimit && ` / ${storageLimit} GB`}
                   </span>
                 </div>
