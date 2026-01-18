@@ -17,6 +17,10 @@ export type RequestPriority = 'normal' | 'urgent'
 export type RequestStatus = 'submitted' | 'in_progress' | 'complete'
 export type SubscriptionStatus = 'active' | 'past_due' | 'canceled' | 'trialing'
 export type SubscriptionTier = 'free' | 'starter' | 'growth' | 'scale' | 'enterprise'
+export type TagColor = 'gray' | 'red' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple' | 'pink'
+export type SatisfactionRating = 1 | 2 | 3 | 4 | 5
+export type AutomationTrigger = 'request_created' | 'request_status_changed' | 'request_assigned' | 'request_overdue'
+export type AutomationAction = 'assign_user' | 'set_priority' | 'add_tag' | 'send_notification' | 'change_status'
 
 export interface Database {
   public: {
@@ -481,6 +485,8 @@ export interface Database {
           type: RequestType
           priority: RequestPriority
           status: RequestStatus
+          due_date: string | null
+          estimated_hours: number | null
           created_by: string
           updated_by: string | null
           completed_at: string | null
@@ -497,6 +503,8 @@ export interface Database {
           type: RequestType
           priority?: RequestPriority
           status?: RequestStatus
+          due_date?: string | null
+          estimated_hours?: number | null
           created_by: string
           updated_by?: string | null
           completed_at?: string | null
@@ -513,6 +521,8 @@ export interface Database {
           type?: RequestType
           priority?: RequestPriority
           status?: RequestStatus
+          due_date?: string | null
+          estimated_hours?: number | null
           created_by?: string
           updated_by?: string | null
           completed_at?: string | null
@@ -930,6 +940,299 @@ export interface Database {
           }
         ]
       }
+      tags: {
+        Row: {
+          id: string
+          agency_id: string
+          name: string
+          color: TagColor
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          agency_id: string
+          name: string
+          color?: TagColor
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          agency_id?: string
+          name?: string
+          color?: TagColor
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tags_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      request_tags: {
+        Row: {
+          request_id: string
+          tag_id: string
+          created_at: string
+        }
+        Insert: {
+          request_id: string
+          tag_id: string
+          created_at?: string
+        }
+        Update: {
+          request_id?: string
+          tag_id?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "request_tags_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_tags_tag_id_fkey"
+            columns: ["tag_id"]
+            isOneToOne: false
+            referencedRelation: "tags"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      time_entries: {
+        Row: {
+          id: string
+          request_id: string
+          user_id: string
+          duration_minutes: number
+          description: string | null
+          tracked_date: string
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          request_id: string
+          user_id: string
+          duration_minutes: number
+          description?: string | null
+          tracked_date?: string
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          id?: string
+          request_id?: string
+          user_id?: string
+          duration_minutes?: number
+          description?: string | null
+          tracked_date?: string
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entries_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: false
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      request_templates: {
+        Row: {
+          id: string
+          agency_id: string
+          name: string
+          description: string | null
+          default_type: RequestType
+          default_priority: RequestPriority
+          title_template: string | null
+          description_template: string
+          is_active: boolean
+          sort_order: number
+          created_by: string
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          agency_id: string
+          name: string
+          description?: string | null
+          default_type?: RequestType
+          default_priority?: RequestPriority
+          title_template?: string | null
+          description_template: string
+          is_active?: boolean
+          sort_order?: number
+          created_by: string
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          id?: string
+          agency_id?: string
+          name?: string
+          description?: string | null
+          default_type?: RequestType
+          default_priority?: RequestPriority
+          title_template?: string | null
+          description_template?: string
+          is_active?: boolean
+          sort_order?: number
+          created_by?: string
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "request_templates_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "request_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      client_satisfaction_ratings: {
+        Row: {
+          id: string
+          request_id: string
+          user_id: string
+          rating: number
+          feedback: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          request_id: string
+          user_id: string
+          rating: number
+          feedback?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          request_id?: string
+          user_id?: string
+          rating?: number
+          feedback?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_satisfaction_ratings_request_id_fkey"
+            columns: ["request_id"]
+            isOneToOne: true
+            referencedRelation: "requests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_satisfaction_ratings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
+      automation_rules: {
+        Row: {
+          id: string
+          agency_id: string
+          name: string
+          description: string | null
+          trigger_type: AutomationTrigger
+          trigger_conditions: Json
+          action_type: AutomationAction
+          action_config: Json
+          is_active: boolean
+          sort_order: number
+          created_by: string
+          created_at: string
+          updated_at: string
+          deleted_at: string | null
+        }
+        Insert: {
+          id?: string
+          agency_id: string
+          name: string
+          description?: string | null
+          trigger_type: AutomationTrigger
+          trigger_conditions?: Json
+          action_type: AutomationAction
+          action_config: Json
+          is_active?: boolean
+          sort_order?: number
+          created_by: string
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Update: {
+          id?: string
+          agency_id?: string
+          name?: string
+          description?: string | null
+          trigger_type?: AutomationTrigger
+          trigger_conditions?: Json
+          action_type?: AutomationAction
+          action_config?: Json
+          is_active?: boolean
+          sort_order?: number
+          created_by?: string
+          created_at?: string
+          updated_at?: string
+          deleted_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "automation_rules_agency_id_fkey"
+            columns: ["agency_id"]
+            isOneToOne: false
+            referencedRelation: "agencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "automation_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          }
+        ]
+      }
     }
     Views: {
       active_clients_count: {
@@ -1014,6 +1317,12 @@ export type NotificationPreference = Tables<'notification_preferences'>
 export type ConversationMute = Tables<'conversation_mutes'>
 export type RequestActivityLog = Tables<'request_activity_log'>
 export type UserDevice = Tables<'user_devices'>
+export type Tag = Tables<'tags'>
+export type RequestTag = Tables<'request_tags'>
+export type TimeEntry = Tables<'time_entries'>
+export type RequestTemplate = Tables<'request_templates'>
+export type ClientSatisfactionRating = Tables<'client_satisfaction_ratings'>
+export type AutomationRule = Tables<'automation_rules'>
 
 // View types (explicit for better type inference)
 export type ActiveClientsCountView = Views<'active_clients_count'>

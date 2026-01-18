@@ -16,6 +16,14 @@ import type {
   RequestPriority,
   RequestStatus,
   ProjectStatus,
+  Tag,
+  TagColor,
+  TimeEntry,
+  RequestTemplate,
+  ClientSatisfactionRating,
+  AutomationRule,
+  AutomationTrigger,
+  AutomationAction,
 } from './database.types'
 
 // Staff member is an agency member who has joined
@@ -54,6 +62,7 @@ export interface RequestWithDetails extends Request {
   created_by_user: User
   assignments: (RequestAssignment & { user: User })[]
   attachments: Attachment[]
+  tags: Tag[]
   _count?: {
     messages: number
   }
@@ -114,6 +123,8 @@ export interface CreateRequestFormData {
   type: RequestType
   priority: RequestPriority
   description: string
+  due_date?: string | null
+  estimated_hours?: number | null
   attachments?: File[]
 }
 
@@ -123,6 +134,8 @@ export interface UpdateRequestRequest {
   type?: RequestType
   priority?: RequestPriority
   status?: RequestStatus
+  due_date?: string | null
+  estimated_hours?: number | null
 }
 
 export interface CreateMessageRequest {
@@ -154,11 +167,159 @@ export interface RequestFilters {
   type?: RequestType | 'all'
   priority?: RequestPriority | 'all'
   assigned?: 'all' | 'unassigned' | 'me' | string // string for specific user ID
+  due_date?: 'all' | 'overdue' | 'due_today' | 'due_this_week' | 'no_due_date'
+  tags?: string[] // Array of tag IDs
   search?: string
 }
 
+// Tag types
+export interface CreateTagRequest {
+  name: string
+  color?: TagColor
+}
+
+export interface UpdateTagRequest {
+  name?: string
+  color?: TagColor
+}
+
+// Time tracking types
+export interface TimeEntryWithUser extends TimeEntry {
+  user: User
+}
+
+export interface CreateTimeEntryRequest {
+  duration_minutes: number
+  description?: string
+  tracked_date?: string
+}
+
+export interface UpdateTimeEntryRequest {
+  duration_minutes?: number
+  description?: string
+  tracked_date?: string
+}
+
+// Request template types
+export interface RequestTemplateWithCreator extends RequestTemplate {
+  created_by_user: User
+}
+
+export interface CreateRequestTemplateRequest {
+  name: string
+  description?: string
+  default_type?: RequestType
+  default_priority?: RequestPriority
+  title_template?: string
+  description_template: string
+  is_active?: boolean
+}
+
+export interface UpdateRequestTemplateRequest {
+  name?: string
+  description?: string
+  default_type?: RequestType
+  default_priority?: RequestPriority
+  title_template?: string
+  description_template?: string
+  is_active?: boolean
+  sort_order?: number
+}
+
+// Client satisfaction rating types
+export interface SatisfactionRatingWithUser extends ClientSatisfactionRating {
+  user: User
+}
+
+export interface CreateSatisfactionRatingRequest {
+  rating: number
+  feedback?: string
+}
+
+export interface UpdateSatisfactionRatingRequest {
+  rating?: number
+  feedback?: string
+}
+
+// Automation rule types
+export interface AutomationRuleWithCreator extends AutomationRule {
+  created_by_user: User
+}
+
+// Trigger condition interfaces
+export interface RequestCreatedConditions {
+  request_type?: RequestType[]
+  priority?: RequestPriority[]
+  project_id?: string
+}
+
+export interface StatusChangedConditions {
+  from_status?: RequestStatus[]
+  to_status?: RequestStatus[]
+}
+
+export interface AssignedConditions {
+  assigned_to?: string[]
+}
+
+// Action config interfaces
+export interface AssignUserAction {
+  user_id: string
+}
+
+export interface SetPriorityAction {
+  priority: RequestPriority
+}
+
+export interface AddTagAction {
+  tag_id: string
+}
+
+export interface SendNotificationAction {
+  user_ids: string[]
+  message: string
+}
+
+export interface ChangeStatusAction {
+  status: RequestStatus
+}
+
+export type TriggerConditions =
+  | RequestCreatedConditions
+  | StatusChangedConditions
+  | AssignedConditions
+  | Record<string, unknown>
+
+export type ActionConfig =
+  | AssignUserAction
+  | SetPriorityAction
+  | AddTagAction
+  | SendNotificationAction
+  | ChangeStatusAction
+
+export interface CreateAutomationRuleRequest {
+  name: string
+  description?: string
+  trigger_type: AutomationTrigger
+  trigger_conditions?: TriggerConditions
+  action_type: AutomationAction
+  action_config: ActionConfig
+  is_active?: boolean
+}
+
+export interface UpdateAutomationRuleRequest {
+  name?: string
+  description?: string
+  trigger_type?: AutomationTrigger
+  trigger_conditions?: TriggerConditions
+  action_type?: AutomationAction
+  action_config?: ActionConfig
+  is_active?: boolean
+  sort_order?: number
+}
+
 export interface RequestSort {
-  field: 'created_at' | 'updated_at' | 'priority'
+  field: 'created_at' | 'updated_at' | 'priority' | 'due_date'
   direction: 'asc' | 'desc'
 }
 

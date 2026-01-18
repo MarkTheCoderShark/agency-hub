@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
-import { format, formatDistanceToNow } from 'date-fns'
+import { format, formatDistanceToNow, isBefore, isToday, startOfDay, differenceInDays } from 'date-fns'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -146,4 +146,81 @@ export function getErrorMessage(error: unknown): string {
     return error
   }
   return 'An unexpected error occurred'
+}
+
+// Due date helpers
+export function isOverdue(dueDate: string | Date | null | undefined, status?: string): boolean {
+  if (!dueDate) return false
+  if (status === 'complete') return false
+  const date = new Date(dueDate)
+  return isBefore(startOfDay(date), startOfDay(new Date()))
+}
+
+export function isDueToday(dueDate: string | Date | null | undefined): boolean {
+  if (!dueDate) return false
+  return isToday(new Date(dueDate))
+}
+
+export function isDueSoon(dueDate: string | Date | null | undefined, daysThreshold = 3): boolean {
+  if (!dueDate) return false
+  const date = new Date(dueDate)
+  const today = startOfDay(new Date())
+  const days = differenceInDays(startOfDay(date), today)
+  return days >= 0 && days <= daysThreshold
+}
+
+export function formatDueDate(dueDate: string | Date | null | undefined): string {
+  if (!dueDate) return ''
+  const date = new Date(dueDate)
+
+  if (isToday(date)) {
+    return 'Today'
+  }
+
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  if (format(date, 'yyyy-MM-dd') === format(tomorrow, 'yyyy-MM-dd')) {
+    return 'Tomorrow'
+  }
+
+  const days = differenceInDays(startOfDay(date), startOfDay(new Date()))
+  if (days < 0) {
+    return `${Math.abs(days)} day${Math.abs(days) === 1 ? '' : 's'} overdue`
+  }
+  if (days <= 7) {
+    return format(date, 'EEEE') // Day name
+  }
+
+  return format(date, 'MMM d')
+}
+
+export function getDueDateColor(dueDate: string | Date | null | undefined, status?: string): string {
+  if (!dueDate) return ''
+  if (status === 'complete') return 'text-muted-foreground'
+
+  if (isOverdue(dueDate, status)) {
+    return 'text-red-600 bg-red-50'
+  }
+  if (isDueToday(dueDate)) {
+    return 'text-orange-600 bg-orange-50'
+  }
+  if (isDueSoon(dueDate)) {
+    return 'text-yellow-600 bg-yellow-50'
+  }
+  return 'text-muted-foreground'
+}
+
+// Tag color helpers
+export function getTagColorClasses(color: string): { bg: string; text: string; border: string } {
+  const colors: Record<string, { bg: string; text: string; border: string }> = {
+    gray: { bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-200' },
+    red: { bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' },
+    orange: { bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-200' },
+    yellow: { bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200' },
+    green: { bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200' },
+    blue: { bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200' },
+    purple: { bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-200' },
+    pink: { bg: 'bg-pink-100', text: 'text-pink-800', border: 'border-pink-200' },
+  }
+  return colors[color] || colors.gray
 }

@@ -57,6 +57,27 @@ export const REQUEST_STATUSES = [
   { value: 'complete', label: 'Complete', color: 'green' },
 ] as const
 
+// Due date filter options
+export const DUE_DATE_FILTERS = [
+  { value: 'all', label: 'All Due Dates' },
+  { value: 'overdue', label: 'Overdue' },
+  { value: 'due_today', label: 'Due Today' },
+  { value: 'due_this_week', label: 'Due This Week' },
+  { value: 'no_due_date', label: 'No Due Date' },
+] as const
+
+// Tag colors
+export const TAG_COLORS = [
+  { value: 'gray', label: 'Gray', bg: 'bg-gray-100', text: 'text-gray-800', border: 'border-gray-200' },
+  { value: 'red', label: 'Red', bg: 'bg-red-100', text: 'text-red-800', border: 'border-red-200' },
+  { value: 'orange', label: 'Orange', bg: 'bg-orange-100', text: 'text-orange-800', border: 'border-orange-200' },
+  { value: 'yellow', label: 'Yellow', bg: 'bg-yellow-100', text: 'text-yellow-800', border: 'border-yellow-200' },
+  { value: 'green', label: 'Green', bg: 'bg-green-100', text: 'text-green-800', border: 'border-green-200' },
+  { value: 'blue', label: 'Blue', bg: 'bg-blue-100', text: 'text-blue-800', border: 'border-blue-200' },
+  { value: 'purple', label: 'Purple', bg: 'bg-purple-100', text: 'text-purple-800', border: 'border-purple-200' },
+  { value: 'pink', label: 'Pink', bg: 'bg-pink-100', text: 'text-pink-800', border: 'border-pink-200' },
+] as const
+
 // Project statuses
 export const PROJECT_STATUSES = [
   { value: 'active', label: 'Active', description: 'Ongoing work, requests accepted' },
